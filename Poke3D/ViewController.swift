@@ -58,74 +58,63 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     // MARK: - ARSCNViewDelegate
     
+    // Delegate that is being called to position a plane and node on an anchor point
+    
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
         
         let node = SCNNode()
         
+        // Determine the anchor
         if let imageAnchor = anchor as? ARImageAnchor {
             
             let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
             
+            // Make the projected plane white and 50% transparent
             plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0.5)
             
+            // A vertical plane will be projected on top of the card
+            // However, this plane needs to be transformed into a horizontal projection
+            // 90 degrees (half PI), anti-clockwise (negative), in the X-axis
+            
             let planeNode = SCNNode(geometry: plane)
+            planeNode.eulerAngles.x = -Float.pi / 2
             
-            planeNode.eulerAngles.x = -.pi / 2
-            
+            // Add the plane to the SCNNode
             node.addChildNode(planeNode)
             
-            if imageAnchor.referenceImage.name == "eevee-card" {
-                if let pokeScene = SCNScene(named: "art.scnassets/eevee.scn") {
+            // From here onwards, the 3D image can be added to the plane ...
+            
+            // if a card has been recognised ..
+            if let pokeCard = imageAnchor.referenceImage.name {
+                
+                // Get the model ..
+                if let pokeScene = SCNScene( named: String("art.scnassets/" + pokeCard + "/" + pokeCard + ".scn") ) {
                     
+                    // And add it to the corresponding plane ..
                     if let pokeNode = pokeScene.rootNode.childNodes.first {
                         
-                        pokeNode.eulerAngles.x = .pi / 2
+                        // Dynamically scale down to an acceptable size for the card - using a Pokemon database about the physical appearance, this could easily be made dynamic per Pokemon. There are really small ones out there!
+                        pokeNode.scale.x = 0.05
+                        pokeNode.scale.y = 0.05
+                        pokeNode.scale.z = 0.05
                         
+                        // The Pokemon needs to be turned on its X axis, so that it's standing on top of the card
+                        pokeNode.eulerAngles.x = Float.pi / 2
+                        
+                        // Put the Pokemon on the plane
                         planeNode.addChildNode(pokeNode)
-                    }
-                }
-            }
-            
-            if imageAnchor.referenceImage.name == "oddish-card" {
-                if let pokeScene = SCNScene(named: "art.scnassets/oddish.scn") {
+                        
+                    }  // if let pokeNode
                     
-                    if let pokeNode = pokeScene.rootNode.childNodes.first {
-                        
-                        pokeNode.eulerAngles.x = .pi / 2
-                        
-                        planeNode.addChildNode(pokeNode)
-                    }
-                }
-            }
+                }  // if let pokeScene
+                
+            }  // if let pokeCard
             
-            
-//            let pokeNode = pokeScene.rootNode.childNodes[1]
-//            
-//            
-//            
-//            let material1 = SCNMaterial()
-//            
-//            material1.diffuse.contents = UIImage(named: "art.scnassets/EievuiDh.tga")
-//            
-//            let material2 = SCNMaterial()
-//            
-//            material2.diffuse.contents = UIImage(named: "art.scnassets/EievuiEyeDh.tga")
-//            
-//            let material3 = SCNMaterial()
-//            
-//            material3.diffuse.contents = UIImage(named: "art.scnassets/EievuiMouthDh.tga")
-//
-//            pokeNode.geometry?.materials = [material1, material2, material3]
-//
-//            node.addChildNode(pokeNode)
-            
-            
-        }
+        }  // if let imageAnchor
         
-        
-        
+        // Back to the main engine
         return node
         
-    }
+    }  // func
 
 }
